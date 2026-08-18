@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Día del Lector - PrepaTec Navojoa</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome & Lucide Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2canvas for poster export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['"Space Grotesk"', 'sans-serif'],
+                    },
+                    colors: {
+                        tec: {
+                            blue: '#0033A0',
+                            lightBlue: '#00A3E0',
+                            darkBlue: '#001E62',
+                            accent: '#7A22FF',
+                            gold: '#FFB800'
+                        }
+                    },
+                    animation: {
+                        'float': 'float 4s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 2.5s ease-in-out infinite',
+                        'shimmer': 'shimmer 3s linear infinite',
+                        'spin-slow': 'spin 12s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-10px) rotate(1deg)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.6', filter: 'drop-shadow(0 0 15px rgba(0, 163, 224, 0.6))' },
+                            '50%': { opacity: '1', filter: 'drop-shadow(0 0 30px rgba(122, 34, 255, 0.9))' },
+                        },
+                        shimmer: {
+                            '0%': { backgroundPosition: '-200% 0' },
+                            '100%': { backgroundPosition: '200% 0' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom scrollbars & glass effects */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #00A3E0 0%, #7A22FF 50%, #FFB800 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .magical-glow {
+            box-shadow: 0 0 50px -10px rgba(0, 163, 224, 0.5);
+        }
+        /* Custom CSS animation for book magic particles */
+        @keyframes emitParticle {
+            0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-120px) scale(1.3) rotate(20deg); opacity: 0; }
+        }
+        .particle {
+            position: absolute;
+            animation: emitParticle 3s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col items-center justify-between overflow-x-hidden selection:bg-tec-lightBlue selection:text-slate-900">
+
+    <!-- Top Interactive Bar -->
+    <header class="w-full max-w-6xl px-4 py-4 flex flex-wrap items-center justify-between gap-4 z-50">
+        <div class="flex items-center gap-3">
+            <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-tec-blue text-white shadow-lg shadow-tec-blue/40 font-bold">
+                <i class="fa-solid fa-book-open text-lg"></i>
+            </span>
+            <div>
+                <h1 class="font-display font-bold text-lg leading-none tracking-wide text-white">PrepaTec Navojoa</h1>
+                <p class="text-xs text-slate-400 font-medium">Día del Lector 2026</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="toggleAudio()" id="audioBtn" class="glass-card hover:bg-slate-800 text-xs px-3 py-2 rounded-xl flex items-center gap-2 transition-all border border-slate-700">
+                <i class="fa-solid fa-music text-tec-lightBlue" id="audioIcon"></i>
+                <span id="audioText">Lofi Ambient</span>
+            </button>
+            <button onclick="openBookRecommendationModal()" class="bg-gradient-to-r from-tec-blue to-tec-accent hover:opacity-90 text-white font-semibold text-xs px-4 py-2 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-tec-accent/20">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>¿Qué leer hoy?</span>
+            </button>
+            <button onclick="shareFlyerLink()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-600/20">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span>Generar Enlace</span>
+            </button>
+            <button onclick="exportPoster()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-amber-500/20">
+                <i class="fa-solid fa-download"></i>
+                <span>Guardar Flyer</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Printable / Viewable Poster Area -->
+    <main class="w-full max-w-4xl p-2 sm:p-6 my-2">
+        <div id="flyerPoster" class="relative w-full rounded-3xl overflow-hidden glass-panel border border-slate-700/60 shadow-2xl magical-glow transition-all duration-500">
+            
+            <!-- Dynamic Background Glow Elements -->
+            <div class="absolute -top-32 -left-32 w-96 h-96 bg-tec-blue/30 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute top-1/2 -right-32 w-96 h-96 bg-tec-accent/25 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-32 left-1/3 w-96 h-96 bg-tec-lightBlue/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Header Branding Logos Bar (Organic Balanced Layout) -->
+            <div class="relative z-20 px-6 sm:px-10 py-5 flex items-center justify-between border-b border-white/10 bg-slate-900/60 backdrop-blur-xl">
+                <!-- PrepaTec Logo inside clean organic capsule -->
+                <div class="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 shadow-lg hover:border-tec-lightBlue/50 transition-all">
+                    <img src="images (1).png" alt="PrepaTec Logo" class="h-10 sm:h-14 w-auto object-contain filter drop-shadow-md transition-transform hover:scale-105" onerror="this.onerror=null; this.src='https://placehold.co/200x80/0033A0/FFF?text=PrepaTec';">
+                </div>
+
+                <!-- Center Decorative Emblem -->
+                <div class="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-tec-lightBlue text-xs font-semibold tracking-wider uppercase shadow-inner">
+                    <i class="fa-solid fa-book-sparkles text-amber-400"></i>
+                    <span>Comunidad Lectora Tec</span>
+                </div>
+
+                <!-- BiblioTec Logo inside clean organic capsule -->
+                <div class="flex items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/30 shadow-lg hover:border-tec-lightBlue/50 transition-all">
+                    <img src="cdobregon_logo_vertical_rgb (1).png" alt="BiblioTEC Logo" class="h-10 sm:h-14 w-auto object-contain filter drop-shadow-sm transition-transform hover:scale-105" onerror="this.onerror=null; this.src='https://placehold.co/200x80/0033A0/FFF?text=BiblioTEC';">
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 p-6 sm:p-10 items-center">
+                
+                <!-- Left Column: Copy & Details (7 cols) -->
+                <div class="md:col-span-7 space-y-6 text-left">
+                    
+                    <!-- Date Pill Badge -->
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs sm:text-sm font-semibold shadow-lg shadow-amber-500/5">
+                        <i class="fa-solid fa-sparkles text-amber-400"></i>
+                        <span>24 de Agosto • PrepaTec Navojoa</span>
+                    </div>
+
+                    <!-- Title -->
+                    <div>
+                        <h2 class="text-3xl sm:text-5xl font-display font-extrabold tracking-tight text-white leading-none">
+                            Día del <span class="text-gradient">Lector</span>
+                        </h2>
+                        <p class="text-xs sm:text-sm font-medium tracking-widest text-slate-400 uppercase mt-2">
+                            #BorregosLectores • Comunidad Tec
+                        </p>
+                    </div>
+
+                    <!-- Highlight Quote Box -->
+                    <div class="relative p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-900/90 to-tec-darkBlue/80 border border-tec-lightBlue/30 shadow-xl group hover:border-tec-lightBlue/60 transition-all">
+                        <div class="absolute -top-3 left-6 px-2 bg-slate-900 text-tec-lightBlue text-xs font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-quote-left"></i> Frase del Día
+                        </div>
+                        <blockquote class="text-base sm:text-lg italic font-medium text-slate-100 leading-relaxed">
+                            "Celebramos a quienes encuentran en los libros <span class="text-tec-lightBlue font-semibold underline decoration-tec-accent/50 underline-offset-4">historias</span>, <span class="text-amber-300 font-semibold underline decoration-amber-400/50 underline-offset-4">ideas</span> e <span class="text-purple-300 font-semibold underline decoration-purple-400/50 underline-offset-4">inspiración</span>."
+                        </blockquote>
+                    </div>
+
+                    <!-- Call to Action snippet -->
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            <span class="text-xs font-semibold text-slate-300">Lugar: Biblioteca PrepaTec Navojoa</span>
+                        </div>
+                        <span class="text-xs text-tec-lightBlue font-bold hover:underline cursor-pointer" onclick="triggerConfetti()">
+                            ¡Celebra con nosotros! <i class="fa-solid fa-sparkles ml-1"></i>
+                        </span>
+                    </div>
+
+                </div>
+
+                <!-- Right Column: Teus Mascot Edited Reading Scene (5 cols) -->
+                <div class="md:col-span-5 flex flex-col items-center justify-center relative my-4 md:my-0">
+                    
+                    <!-- Decorative Radial Nebula & Cyber Portal Halo -->
+                    <div class="absolute w-72 h-72 sm:w-88 sm:h-88 rounded-full bg-gradient-to-tr from-tec-blue via-tec-accent to-amber-400 opacity-40 blur-3xl animate-pulse-glow"></div>
+                    <div class="absolute w-60 h-60 rounded-full border border-tec-lightBlue/30 animate-spin-slow pointer-events-none"></div>
+
+                    <!-- Mascot Interactive Container -->
+                    <div class="relative group cursor-pointer" onclick="interactTeus()" title="¡Haz clic para interactuar con Teus!">
+                        
+                        <!-- Floating Holographic Magic Particles from the Book -->
+                        <div class="absolute -top-12 left-8 pointer-events-none z-30">
+                            <span class="particle text-tec-lightBlue text-xl" style="animation-delay: 0s;"><i class="fa-solid fa-dragon"></i></span>
+                            <span class="particle text-amber-400 text-lg" style="animation-delay: 0.7s;"><i class="fa-solid fa-rocket"></i></span>
+                            <span class="particle text-purple-400 text-2xl" style="animation-delay: 1.4s;"><i class="fa-solid fa-brain"></i></span>
+                            <span class="particle text-emerald-400 text-base" style="animation-delay: 2.1s;"><i class="fa-solid fa-atom"></i></span>
+                            <span class="particle text-pink-400 text-lg" style="animation-delay: 2.8s;"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                        </div>
+
+                        <!-- Teus Mascot Image (High-Impact Cyber-Reading Edit) -->
+                        <div class="relative z-10 w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center">
+                            
+                            <!-- Mascot Base Image -->
+                            <img id="teusMascotImg" src="imagesj.jpeg" alt="Borrego Teus Leyendo" class="w-full h-full object-contain filter drop-shadow-2xl transition-transform duration-300 group-hover:scale-105" onerror="this.onerror=null; this.src='images.png';">
+
+                            <!-- EDITED OVERLAY: Smart Sci-Fi Reading Glasses with Refractive Glow -->
+                            <div class="absolute top-[27%] left-[32%] w-[40%] h-[16%] pointer-events-none z-20 transition-transform duration-300 group-hover:scale-110">
+                                <svg viewBox="0 0 100 40" class="w-full h-full filter drop-shadow-[0_0_8px_rgba(0,163,224,0.8)]">
+                                    <!-- Thick Tech Frame -->
+                                    <circle cx="28" cy="20" r="14" fill="rgba(15, 23, 42, 0.6)" stroke="#00A3E0" stroke-width="3.5"/>
+                                    <circle cx="72" cy="20" r="14" fill="rgba(15, 23, 42, 0.6)" stroke="#00A3E0" stroke-width="3.5"/>
+                                    <path d="M 42 18 L 58 18" stroke="#FFB800" stroke-width="4" stroke-linecap="round"/>
+                                    <!-- HUD Lens Elements -->
+                                    <path d="M 20 12 L 28 8" stroke="#7A22FF" stroke-width="2.5" stroke-linecap="round"/>
+                                    <path d="M 64 12 L 72 8" stroke="#7A22FF" stroke-width="2.5" stroke-linecap="round"/>
+                                    <circle cx="28" cy="20" r="6" fill="none" stroke="#FFB800" stroke-width="1.5" stroke-dasharray="2,2"/>
+                                    <circle cx="72" cy="20" r="6" fill="none" stroke="#FFB800" stroke-width="1.5" stroke-dasharray="2,2"/>
+                                </svg>
+                            </div>
+
+                            <!-- EDITED OVERLAY: Holographic Magic Book Floating in Front of Teus -->
+                            <div class="absolute bottom-[8%] left-[8%] right-[8%] h-[46%] z-20 flex items-center justify-center pointer-events-none transform -rotate-1">
+                                
+                                <!-- Book Radiant Aura -->
+                                <div class="absolute inset-0 bg-gradient-to-t from-tec-lightBlue/50 via-tec-accent/30 to-transparent blur-md rounded-full animate-pulse"></div>
+                                
+                                <!-- 3D Open Holographic Book Overlay -->
+                                <div class="relative w-full h-full flex items-center justify-center filter drop-shadow-[0_0_20px_rgba(122,34,255,0.7)]">
+                                    <svg viewBox="0 0 200 120" class="w-full h-full">
+                                        <!-- Outer Glow Outline -->
+                                        <path d="M 10 90 Q 100 110 190 90 L 185 30 Q 100 50 15 30 Z" fill="#001E62" stroke="#7A22FF" stroke-width="3"/>
+                                        <!-- Left Page (Light Gradient) -->
+                                        <path d="M 15 30 Q 100 48 100 48 L 100 100 Q 15 82 15 30 Z" fill="url(#leftPageGrad)"/>
+                                        <!-- Right Page (Light Gradient) -->
+                                        <path d="M 100 48 Q 185 30 185 30 L 185 82 Q 100 100 100 48 Z" fill="url(#rightPageGrad)"/>
+                                        
+                                        <!-- Holographic Text Lines -->
+                                        <path d="M 25 45 L 85 58 M 25 55 L 80 66 M 25 65 L 75 74" stroke="#00A3E0" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M 115 58 L 175 45 M 120 66 L 175 55 M 125 74 L 175 65" stroke="#7A22FF" stroke-width="2" stroke-linecap="round"/>
+                                        
+                                        <!-- Glowing Gold Bookmark -->
+                                        <path d="M 100 48 L 100 110 L 108 104 L 116 110 L 110 48" fill="#FFB800"/>
+
+                                        <!-- Beams of Light Shooting Upwards -->
+                                        <path d="M 100 48 L 50 2 M 100 48 L 80 -8 M 100 48 L 120 -8 M 100 48 L 150 2" stroke="#FFB800" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+
+                                        <defs>
+                                            <linearGradient id="leftPageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stop-color="#FFFFFF" />
+                                                <stop offset="100%" stop-color="#E0F2FE" />
+                                            </linearGradient>
+                                            <linearGradient id="rightPageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stop-color="#F1F5F9" />
+                                                <stop offset="100%" stop-color="#CBD5E1" />
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Speech Bubble overlay -->
+                        <div id="teusBubble" class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-900 border border-tec-lightBlue text-white text-xs px-4 py-2 rounded-2xl shadow-xl whitespace-nowrap z-30 transition-all duration-300 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                            <span id="teusQuoteText">"¡Un libro es la mejor aventura! 📚"</span>
+                        </div>
+                    </div>
+
+                    <!-- Caption under Mascot -->
+                    <p class="text-[11px] text-slate-400 mt-6 font-medium text-center">
+                        <i class="fa-solid fa-hand-pointer text-tec-lightBlue mr-1"></i> Toca a Teus para inspirarte
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- Footer Strip inside poster -->
+            <div class="relative z-20 px-6 py-4 bg-slate-900/90 border-t border-white/10 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-location-dot text-tec-lightBlue"></i>
+                    <span>PrepaTec Navojoa</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-slate-300 font-semibold">#BorregosLectores</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Interactive Engagement Section for Students (100+ Books & 10 Libby Categories) -->
+    <section class="w-full max-w-4xl px-4 py-6 mb-8">
+        <div class="glass-panel p-6 rounded-3xl border border-slate-800 space-y-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-compass text-amber-400"></i>
+                        Descubre tu Próxima Lectura en BiblioTEC & Libby
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">Explora más de 100 recomendaciones digitales seleccionadas para la comunidad Tec.</p>
+                </div>
+                <!-- External Links to Libby & BiblioTEC -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <a href="https://libbyapp.com/library/bibliotecatec" target="_blank" rel="noopener noreferrer" class="glass-card hover:bg-slate-800 text-slate-200 hover:text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-2 transition-all border border-slate-700">
+                        <i class="fa-solid fa-tablet-screen-button text-tec-lightBlue"></i>
+                        <span>Catálogo Libby App</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400"></i>
+                    </a>
+                    <a href="https://biblioteca.tec.mx/prepatec/colecciones" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-tec-blue to-tec-accent hover:opacity-90 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-2 transition-all shadow-md">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                        <span>Colecciones PrepaTec</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-80"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 10 Genre Filters Bar -->
+            <div class="space-y-2 border-t border-slate-800 pt-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Filtrar por Categoría Libby (10 Especialidades):</span>
+                    <span id="bookCountBadge" class="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30">
+                        116 Títulos Disponibles
+                    </span>
+                </div>
+                <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none flex-wrap">
+                    <button onclick="filterGenre('all')" class="genre-btn active-genre px-3 py-1.5 rounded-xl bg-tec-blue text-white text-xs font-semibold transition-all border border-tec-lightBlue">Todos (116)</button>
+                    <button onclick="filterGenre('fantasy')" class="genre-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-tec-blue text-xs font-semibold text-slate-300 transition-all border border-slate-700">1. Fantasía & Sci-Fi</button>
+                    <button onclick="filterGenre('classic')" class="genre-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-tec-blue text-xs font-semibold text-slate-300 transition-all border border-slate-700">2. Clásicos Universales</button>
+                    <button onclick="filterGenre('tech')" class="genre-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-tec-blue text-xs font-semibold text-slate-300 transition-all border border-slate-700">3. Tecnología e IA</button>
+                    <button onclick="filterGenre('growth')" class="genre-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-tec-blue text-xs font-semibold text-slate-300 transition-all border border-slate-700">4. Desarrollo Personal</button>
+                    <button onclick="filterGenre('mystery')" class="genre-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-tec-blue text-xs font-semibold text-slate-300 transition-all border border-slate-700">5. Misterio & Thriller</button>
+                    <button onclick="filterGenre('ya')" class="genre-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-tec-blue text-xs font-semibold text-slate-300 transition-all border border-slate-700">6. Novela Juvenil & YA</button>
+                    <button onclick="filterGenre('history')" class="genre-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-tec-blue text-xs font-semibold text-slate-300 transition-all border border-slate-700">7. Historia & Sociedad</button>
+                    <button onclick="filterGenre('bio')" class="genre-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-tec-blue text-xs font-semibold text-slate-300 transition-all border border-slate-700">8. Biografías & Memorias</button>
+                    <button onclick="filterGenre('poetry')" class="genre-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-tec-blue text-xs font-semibold text-slate-300 transition-all border border-slate-700">9. Poesía & Teatro</button>
+                    <button onclick="filterGenre('science')" class="genre-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-tec-blue text-xs font-semibold text-slate-300 transition-all border border-slate-700">10. Divulgación Científica</button>
+                </div>
+            </div>
+
+            <!-- Book recommendation dynamic result card -->
+            <div id="bookCard" class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row items-center gap-5 transition-all shadow-xl">
+                <div class="w-20 h-24 rounded-xl bg-gradient-to-tr from-tec-blue via-tec-accent to-amber-500 flex flex-col items-center justify-center text-white text-3xl shadow-lg shrink-0 border border-white/20">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                    <span id="currentBookIndexText" class="text-[10px] font-bold text-amber-200 mt-1">1 / 116</span>
+                </div>
+                <div class="flex-1 text-center sm:text-left space-y-1.5">
+                    <div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                        <span id="bookGenreTag" class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-tec-lightBlue/20 text-tec-lightBlue border border-tec-lightBlue/30">Fantasía & Sci-Fi • Libby App</span>
+                        <span id="bookAvailability" class="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">Disponible E-Book / Audiolibro</span>
+                    </div>
+                    <h4 id="bookTitle" class="text-lg font-bold text-white">El Problema de los Tres Cuerpos</h4>
+                    <p id="bookAuthor" class="text-xs text-amber-400 font-semibold">Cixin Liu</p>
+                    <p id="bookDesc" class="text-xs text-slate-300 line-clamp-2">Una fascinante aventura de ciencia ficción, astronomía y conspiraciones globales que desafía la física.</p>
+                </div>
+                <button onclick="nextBook()" class="px-5 py-3 rounded-xl bg-gradient-to-r from-tec-blue to-tec-accent hover:opacity-90 text-xs font-bold text-white transition-all whitespace-nowrap shadow-lg shadow-tec-accent/20 flex items-center gap-2">
+                    <span>Siguiente libro</span>
+                    <i class="fa-solid fa-circle-arrow-right text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer copyright -->
+    <footer class="w-full text-center py-6 text-xs text-slate-500 border-t border-slate-900">
+        <p>© 2026 PrepaTec Navojoa & BiblioTEC. Todos los derechos reservados.</p>
+    </footer>
+
+    <!-- Interactive Modal for Book Recommendation -->
+    <div id="recModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 z-50 transition-opacity">
+        <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-slate-700 shadow-2xl relative space-y-4 text-center">
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-400 mx-auto flex items-center justify-center text-3xl">
+                <i class="fa-solid fa-dice"></i>
+            </div>
+
+    <!-- Modal para Compartir Enlace Público -->
+    <div id="shareModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 z-50 transition-opacity">
+        <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-slate-700 shadow-2xl relative space-y-4 text-center">
+            <button onclick="closeShareModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center text-3xl">
+                <i class="fa-solid fa-link"></i>
+            </div>
+
+            <h3 class="text-xl font-bold text-white">Enlace Personalizado del Evento</h3>
+            <p class="text-xs text-slate-400">Comparte este enlace con la comunidad de PrepaTec Navojoa para que accedan al flyer interactivo desde cualquier dispositivo.</p>
+
+            <div class="p-3 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-2 text-left">
+                <input id="shareUrlInput" type="text" readonly class="bg-transparent text-xs text-slate-200 flex-1 outline-none font-mono truncate px-2" value="">
+                <button onclick="copyShareUrl()" class="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl transition-all shrink-0 flex items-center gap-1">
+                    <i class="fa-solid fa-copy"></i> Copiar
+                </button>
+            </div>
+            <p id="copyStatusText" class="text-[11px] text-emerald-400 hidden font-semibold"><i class="fa-solid fa-circle-check mr-1"></i> ¡Enlace copiado al portapapeles con éxito!</p>
+        </div>
+    </div>
+
+    <!-- Cloud Storage Sync Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'dia-del-lector-navojoa';
+        let db = null;
+        let auth = null;
+
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            try {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+            } catch (e) {
+                console.error("Firebase initialization error:", e);
+            }
+        }
+
+        async function initAuth() {
+            if (!auth) return null;
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                return auth.currentUser;
+            } catch (e) {
+                console.error("Auth error:", e);
+                return null;
+            }
+        }
+
+        window.shareFlyerLink = async function() {
+            const currentUrl = window.location.href.split('#')[0];
+            const flyerId = "dia-del-lector-2026-navojoa";
+            
+            if (db && auth) {
+                const user = await initAuth();
+                if (user) {
+                    try {
+                        const flyerRef = doc(db, 'artifacts', appId, 'public', 'data', 'flyers', flyerId);
+                        await setDoc(flyerRef, {
+                            eventName: "Día del Lector 2026",
+                            campus: "PrepaTec Navojoa",
+                            date: "24 de Agosto",
+                            updatedAt: new Date().toISOString()
+                        }, { merge: true });
+                    } catch(err) {
+                        console.error("Error saving flyer metadata:", err);
+                    }
+                }
+            }
+
+            const shareableUrl = `${currentUrl}#event=dia-del-lector-navojoa`;
+            document.getElementById('shareUrlInput').value = shareableUrl;
+            document.getElementById('shareModal').classList.remove('hidden');
+            document.getElementById('shareModal').classList.add('flex');
+        };
+
+        window.closeShareModal = function() {
+            document.getElementById('shareModal').classList.add('hidden');
+            document.getElementById('shareModal').classList.remove('flex');
+            document.getElementById('copyStatusText').classList.add('hidden');
+        };
+
+        window.copyShareUrl = function() {
+            const input = document.getElementById('shareUrlInput');
+            input.select();
+            input.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                document.getElementById('copyStatusText').classList.remove('hidden');
+            } catch(e) {
+                console.error("Copy failed", e);
+            }
+        };
+    </script>
+
+    <!-- JavaScript Interactions & Web Audio API -->
+    <script>
+        const quotes = [
+            "\"¡Un libro es la mejor aventura! 📚\"",
+            "\"Encuentra historias que inspiren tu camino ✨\"",
+            "\"¡Nos vemos este 24 de Agosto en la Biblioteca! 🏫\"",
+            "\"Abre un libro, abre tu mente 🚀\"",
+            "\"#BorregosLectores cambiando el mundo 💙\""
+        ];
+        let quoteIndex = 0;
+
+        // Expanded Database with 116 Books across 10 Categories in Libby / BiblioTEC
+        const booksDatabase = [
+            // CATEGORY 1: Fantasía & Sci-Fi
+            { title: "El Problema de los Tres Cuerpos", author: "Cixin Liu", genre: "fantasy", genreName: "Fantasía & Sci-Fi • Libby", desc: "Una fascinante aventura de ciencia ficción, astronomía y conspiraciones globales que desafía la física." },
+            { title: "Dune", author: "Frank Herbert", genre: "fantasy", genreName: "Fantasía & Sci-Fi • Libby", desc: "Una obra maestra de estrategia, ecología y destino en el peligroso planeta desértico Arrakis." },
+            { title: "Guía del Autoestopista Galáctico", author: "Douglas Adams", genre: "fantasy", genreName: "Fantasía & Sci-Fi • Libby", desc: "Humor ingenioso y viajes intergalácticos a través del espacio." },
+            { title: "El Nombre del Viento", author: "Patrick Rothfuss", genre: "fantasy", genreName: "Fantasía & Sci-Fi • Libby", desc: "La historia de Kvothe, un músico y mago legendario contado en primera persona." },
+            { title: "Fundación", author: "Isaac Asimov", genre: "fantasy", genreName: "Fantasía & Sci-Fi • Libby", desc: "La psicohistoria y la lucha por preservar el conocimiento ante la caída de un imperio galáctico." },
+            { title: "Neuromante", author: "William Gibson", genre: "fantasy", genreName: "Fantasía & Sci-Fi • Libby", desc: "La novela cyberpunk definitiva sobre ciberespacio, hackers y conspiraciones." },
+            { title: "Fahrenheit 451", author: "Ray Bradbury", genre: "fantasy", genreName: "Fantasía & Sci-Fi • Libby", desc: "Un futuro donde los libros están prohibidos y un bombero descubre el valor de la lectura." },
+            { title: "El Hobbit", author: "J.R.R. Tolkien", genre: "fantasy", genreName: "Fantasía & Sci-Fi • Libby", desc: "La épica aventura de Bilbo Bolsón en busca del tesoro del dragón Smaug." },
+            { title: "Un Mundo Feliz", author: "Aldous Huxley", genre: "fantasy", genreName: "Fantasía & Sci-Fi • Libby", desc: "Una visión profética sobre el condicionamiento social y el desarrollo tecnológico." },
+            { title: "Proyecto Hail Mary", author: "Andy Weir", genre: "fantasy", genreName: "Fantasía & Sci-Fi • Libby", desc: "Un solitario astronauta debe salvar a la Tierra de una catástrofe astronómica." },
+            { title: "Crónicas Marcianas", author: "Ray Bradbury", genre: "fantasy", genreName: "Fantasía & Sci-Fi • Libby", desc: "Relatos poéticos sobre la colonización de Marte por parte de la humanidad." },
+            { title: "El Silmarillion", author: "J.R.R. Tolkien", genre: "fantasy", genreName: "Fantasía & Sci-Fi • Libby", desc: "La mitología y los orígenes de la Tierra Media." },
+
+            // CATEGORY 2: Clásicos Universales
+            { title: "Cien Años de Soledad", author: "Gabriel García Márquez", genre: "classic", genreName: "Clásicos • PrepaTec", desc: "La saga icónica de la familia Buendía en el inolvidable pueblo de Macondo." },
+            { title: "Don Quijote de la Mancha", author: "Miguel de Cervantes", genre: "classic", genreName: "Clásicos • PrepaTec", desc: "El caballero de la triste figura y sus aventuras por la justicia e idealismo." },
+            { title: "Pedro Páramo", author: "Juan Rulfo", genre: "classic", genreName: "Clásicos • PrepaTec", desc: "Un viaje místico a Comala en busca de un padre fantasmal." },
+            { title: "Orgullo y Prejuicio", author: "Jane Austen", genre: "classic", genreName: "Clásicos • PrepaTec", desc: "Una ingeniosa sátira sobre las relaciones humanas, la independencia y la sociedad." },
+            { title: "Crimen y Castigo", author: "Fiódor Dostoyevski", genre: "classic", genreName: "Clásicos • PrepaTec", desc: "Un dilema moral y psicológico profundo en las calles de San Petersburgo." },
+            { title: "La Metamorfosis", author: "Franz Kafka", genre: "classic", genreName: "Clásicos • PrepaTec", desc: "La transformación de Gregorio Samsa y una reflexión sobre la alienación humana." },
+            { title: "El Principito", author: "Antoine de Saint-Exupéry", genre: "classic", genreName: "Clásicos • PrepaTec", desc: "Una fábula poética sobre el amor, la amistad y lo verdaderamente esencial." },
+            { title: "El Gran Gatsby", author: "F. Scott Fitzgerald", genre: "classic", genreName: "Clásicos • PrepaTec", desc: "La búsqueda del sueño americano en los deslumbrantes años veinte." },
+            { title: "1984", author: "George Orwell", genre: "classic", genreName: "Clásicos • PrepaTec", desc: "Una advertencia sobre la vigilancia totalitaria, la verdad y la libertad." },
+            { title: "La Odisea", author: "Homero", genre: "classic", genreName: "Clásicos • PrepaTec", desc: "El legendario viaje de regreso de Odiseo tras la guerra de Troya." },
+            { title: "Ensayo sobre la Ceguera", author: "José Saramago", genre: "classic", genreName: "Clásicos • PrepaTec", desc: "Una epidemia de ceguera blanca pone a prueba la empatía y la condición humana." },
+            { title: "Rayuela", author: "Julio Cortázar", genre: "classic", genreName: "Clásicos • PrepaTec", desc: "Una obra maestra interactiva para leer en múltiples órdenes posibles." },
+
+            // CATEGORY 3: Tecnología e Inteligencia Artificial
+            { title: "Klara y el Sol", author: "Kazuo Ishiguro", genre: "tech", genreName: "Tecnología e IA • Libby", desc: "Una mirada conmovedora al futuro de la inteligencia artificial y el afecto humano." },
+            { title: "Superinteligencia", author: "Nick Bostrom", genre: "tech", genreName: "Tecnología e IA • Libby", desc: "Rutas, peligros y estrategias ante el advenimiento de inteligencias superiores." },
+            { title: "La Era del Capitalismo de la Vigilancia", author: "Shoshana Zuboff", genre: "tech", genreName: "Tecnología e IA • Libby", desc: "Análisis sobre el impacto de la tecnología de datos en la sociedad moderna." },
+            { title: "Vida 3.0", author: "Max Tegmark", genre: "tech", genreName: "Tecnología e IA • Libby", desc: "Ser humano en la era de la inteligencia artificial." },
+            { title: "Algoritmos para la Vida Cotidiana", author: "Brian Christian", genre: "tech", genreName: "Tecnología e IA • Libby", desc: "Cómo las ciencias de la computación ayudan a tomar mejores decisiones." },
+            { title: "El Arte de la Invisibilidad", author: "Kevin Mitnick", genre: "tech", genreName: "Tecnología e IA • Libby", desc: "Estrategias de ciberseguridad y privacidad en el mundo conectado." },
+            { title: "La Segunda Era de las Máquinas", author: "Erik Brynjolfsson", genre: "tech", genreName: "Tecnología e IA • Libby", desc: "Trabajo, progreso y prosperidad en un tiempo de tecnologías brillantes." },
+            { title: "Steve Jobs", author: "Walter Isaacson", genre: "tech", genreName: "Tecnología e IA • Libby", desc: "La biografía autorizada del fundador de Apple e icono de la innovación digital." },
+            { title: "Los Innovadores", author: "Walter Isaacson", genre: "tech", genreName: "Tecnología e IA • Libby", desc: "La historia de los creadores del ordenador e internet." },
+            { title: "Zero to One", author: "Peter Thiel", genre: "tech", genreName: "Tecnología e IA • Libby", desc: "Cómo construir startups que creen un futuro verdaderamente nuevo." },
+
+            // CATEGORY 4: Desarrollo Personal & Liderazgo
+            { title: "Hábitos Atómicos", author: "James Clear", genre: "growth", genreName: "Desarrollo Personal • Libby", desc: "Un método práctico para mejorar un 1% cada día a través de la lectura y el enfoque." },
+            { title: "El Poder de los Hábitos", author: "Charles Duhigg", genre: "growth", genreName: "Desarrollo Personal • Libby", desc: "La ciencia detrás de por qué hacemos lo que hacemos en la vida y el estudio." },
+            { title: "Los 7 Hábitos de la Gente Altamente Efectiva", author: "Stephen Covey", genre: "growth", genreName: "Desarrollo Personal • Libby", desc: "Principios de liderazgo, proactividad y efectividad para jóvenes." },
+            { title: "Pensar Rápido, Pensar Despacio", author: "Daniel Kahneman", genre: "growth", genreName: "Desarrollo Personal • Libby", desc: "Los dos sistemas de pensamiento que dirigen nuestras decisiones." },
+            { title: "La Psicología del Dinero", author: "Morgan Housel", genre: "growth", genreName: "Desarrollo Personal • Libby", desc: "Lecciones atemporales sobre riqueza, codicia y felicidad." },
+            { title: "Esencialismo", author: "Greg McKeown", genre: "growth", genreName: "Desarrollo Personal • Libby", desc: "El diseño de una vida enfocado en lo que realmente importa." },
+            { title: "Trabajo Profundo (Deep Work)", author: "Cal Newport", genre: "growth", genreName: "Desarrollo Personal • Libby", desc: "Reglas para el éxito enfocado en un mundo distraído." },
+            { title: "El Club de las 5 de la Mañana", author: "Robin Sharma", genre: "growth", genreName: "Desarrollo Personal • Libby", desc: "Maximiza tu productividad y bienestar personal desde temprano." },
+            { title: "Las 48 Leyes del Poder", author: "Robert Greene", genre: "growth", genreName: "Desarrollo Personal • Libby", desc: "Estrategias de influencia y comprensión de la dinámica social." },
+            { title: "Rompe la Barrera del No", author: "Chris Voss", genre: "growth", genreName: "Desarrollo Personal • Libby", desc: "Técnicas de negociación utilizadas por negociadores de élite del FBI." },
+
+            // CATEGORY 5: Misterio & Thriller
+            { title: "La Sombra del Viento", author: "Carlos Ruiz Zafón", genre: "mystery", genreName: "Misterio & Thriller • BiblioTEC", desc: "Un misterio secreto ambientado en el Cementerio de los Libros Olvidados de Barcelona." },
+            { title: "El Código Da Vinci", author: "Dan Brown", genre: "mystery", genreName: "Misterio & Thriller • Libby", desc: "Simbología, historia y claves secretas en una carrera contrarreloj." },
+            { title: "La Chica del Tren", author: "Paula Hawkins", genre: "mystery", genreName: "Misterio & Thriller • Libby", desc: "Un thriller psicológico absorbente sobre secretos y recuerdos distorsionados." },
+            { title: "Perdida (Gone Girl)", author: "Gillian Flynn", genre: "mystery", genreName: "Misterio & Thriller • Libby", desc: "Un enigma intrigante sobre la desaparición de una esposa en su aniversario." },
+            { title: "Los Hombres que No Amaban a las Mujeres", author: "Stieg Larsson", genre: "mystery", genreName: "Misterio & Thriller • Libby", desc: "Lisbeth Salander y Mikael Blomkvist investigan un crimen familiar sin resolver." },
+            { title: "La Paciente Silenciosa", author: "Alex Michaelides", genre: "mystery", genreName: "Misterio & Thriller • Libby", desc: "El silencio impactante de una mujer acusada y el terapeuta obsesionado en escucharla." },
+            { title: "Diez Negritos", author: "Agatha Christie", genre: "mystery", genreName: "Misterio & Thriller • Libby", desc: "Diez desconocidos atrapados en una isla privada bajo una siniestra acusación." },
+            { title: "El Psicoanalista", author: "John Katzenbach", genre: "mystery", genreName: "Misterio & Thriller • Libby", desc: "Un juego mortal de ingenio y venganza psicológicamente intenso." },
+            { title: "La Verdad sobre el Caso Harry Quebert", author: "Joël Dicker", genre: "mystery", genreName: "Misterio & Thriller • Libby", desc: "Un joven escritor intenta resolver el misterio que amenaza a su mentor." },
+            { title: "El Cuervo y otros relatos", author: "Edgar Allan Poe", genre: "mystery", genreName: "Misterio & Thriller • Libby", desc: "Relatos góticos de suspenso, terror e investigación deductiva." },
+
+            // CATEGORY 6: Novela Juvenil & YA
+            { title: "Los Juegos del Hambre", author: "Suzanne Collins", genre: "ya", genreName: "Juvenil & YA • Libby", desc: "Katniss Everdeen desafía al Capitolio en un torneo de supervivencia deslumbrante." },
+            { title: "Harry Potter y la Piedra Filosofal", author: "J.K. Rowling", genre: "ya", genreName: "Juvenil & YA • Libby", desc: "El inicio de la inolvidable saga mágica en el Colegio Hogwarts." },
+            { title: "Las Ventajas de Ser Invisible", author: "Stephen Chbosky", genre: "ya", genreName: "Juvenil & YA • Libby", desc: "Cartas, música y el viaje hacia el descubrimiento personal en la preparatoria." },
+            { title: "Bajo la Misma Estrella", author: "John Green", genre: "ya", genreName: "Juvenil & YA • Libby", desc: "Una historia emotiva, inteligente y esperanzadora sobre la juventud." },
+            { title: "Maze Runner: Correr o Morir", author: "James Dashner", genre: "ya", genreName: "Juvenil & YA • Libby", desc: "Un laberinto gigante guarda el secreto de la libertad para un grupo de jóvenes." },
+            { title: "Divergente", author: "Veronica Roth", genre: "ya", genreName: "Juvenil & YA • Libby", desc: "En una sociedad dividida por facciones, Tris descubre su naturaleza singular." },
+            { title: "Percy Jackson y el Ladrón del Rayo", author: "Rick Riordan", genre: "ya", genreName: "Juvenil & YA • Libby", desc: "Mitología griega adaptada a las aventuras de un joven moderno." },
+            { title: "Persona Normal", author: "Benito Taibo", genre: "ya", genreName: "Juvenil & YA • Libby", desc: "Una bella oda a la lectura, la imaginación y la rebeldía de ser uno mismo." },
+            { title: "Aristóteles y Dante Descubren los Secretos del Universo", author: "Benjamin Alire Sáenz", genre: "ya", genreName: "Juvenil & YA • Libby", desc: "Una amistad transformative entre dos jóvenes que aprenden a crecer." },
+            { title: "Heartstopper", author: "Alice Oseman", genre: "ya", genreName: "Juvenil & YA • Libby", desc: "Una encantadora novela gráfica sobre el amor, la amistad y la empatía." },
+
+            // CATEGORY 7: Historia & Sociedad
+            { title: "Sapiens: De animales a dioses", author: "Yuval Noah Harari", genre: "history", genreName: "Historia • Libby", desc: "Un recorrido fascinante por la historia evolutiva y cultural de la humanidad." },
+            { title: "Homo Deus", author: "Yuval Noah Harari", genre: "history", genreName: "Historia • Libby", desc: "Una mirada provocadora al futuro de nuestra especie y sus metas evolutivas." },
+            { title: "Armas, Gérmenes y Acero", author: "Jared Diamond", genre: "history", genreName: "Historia • Libby", desc: "Factores geográficos y ambientales que moldearon las civilizaciones." },
+            { title: "La Riqueza de las Naciones", author: "Adam Smith", genre: "history", genreName: "Historia • Libby", desc: "Fundamentos de la economía moderna y el desarrollo de los mercados." },
+            { title: "Una Breve Historia de Casi Todo", author: "Bill Bryson", genre: "history", genreName: "Historia • Libby", desc: "De la física al origen de la Tierra explicado de manera divertida." },
+            { title: "El Arte de la Guerra", author: "Sun Tzu", genre: "history", genreName: "Historia • Libby", desc: "Estrategias de diplomacia, liderazgo y gestión de conflictos." },
+            { title: "Las Venas Abiertas de América Latina", author: "Eduardo Galeano", genre: "history", genreName: "Historia • Libby", desc: "Análisis histórico y social sobre el desarrollo de América Latina." },
+            { title: "El Colapso de las Civilizaciones", author: "Jared Diamond", genre: "history", genreName: "Historia • Libby", desc: "Lecciones del pasado para preservar la sostenibilidad ambiental." },
+            { title: "Imperios y Bárbaros", author: "Peter Heather", genre: "history", genreName: "Historia • Libby", desc: "Las migraciones que transformaron Europa y el mundo antiguo." },
+            { title: "La Invención de la Naturaleza", author: "Andrea Wulf", genre: "history", genreName: "Historia • Libby", desc: "La vida del visionario explorador y naturalista Alexander von Humboldt." },
+
+            // CATEGORY 8: Biografías & Memorias
+            { title: "Frida: Una biografía", author: "Hayden Herrera", genre: "bio", genreName: "Biografías • Libby", desc: "La apasionante vida, arte y fortaleza de la célebre pintora mexicana." },
+            { title: "El Diario de Ana Frank", author: "Ana Frank", genre: "bio", genreName: "Biografías • Libby", desc: "El conmovedor testimonio personal de esperanza y resiliencia humana." },
+            { title: "Larga Caminata Hacia la Libertad", author: "Nelson Mandela", genre: "bio", genreName: "Biografías • Libby", desc: "La autobiografía del líder sudafricano y referente mundial de paz." },
+            { title: "Educada (Educated)", author: "Tara Westover", genre: "bio", genreName: "Biografías • Libby", desc: "Una memoria asombrosa sobre el poder transformador de la educación." },
+            { title: "Ser Humano", author: "Oliver Sacks", genre: "bio", genreName: "Biografías • Libby", desc: "Relatos neuro-médicos sobre la mente, la empatía y la condición humana." },
+            { title: "Elon Musk", author: "Walter Isaacson", genre: "bio", genreName: "Biografías • Libby", desc: "La biografía íntima del empresario espacial y automotriz." },
+            { title: "Mi Historia", author: "Michelle Obama", genre: "bio", genreName: "Biografías • Libby", desc: "Una memoria inspiradora sobre liderazgo, familia y autenticidad." },
+            { title: "Nunca Te Rindas (Shoe Dog)", author: "Phil Knight", genre: "bio", genreName: "Biografías • Libby", desc: "La historia real detrás de la creación de la marca global Nike." },
+            { title: "Open: Memorias", author: "Andre Agassi", genre: "bio", genreName: "Biografías • Libby", desc: "Una de las autobiografías deportivas más sinceras e impactantes." },
+            { title: "El Hombre en Busca de Sentido", author: "Viktor Frankl", genre: "bio", genreName: "Biografías • Libby", desc: "Reflexiones psicológicas fundamentales sobre la resiliencia y el propósito." },
+
+            // CATEGORY 9: Poesía & Teatro
+            { title: "Veinte Poemas de Amor y una Canción Desesperada", author: "Pablo Neruda", genre: "poetry", genreName: "Poesía • Libby", desc: "La antología poética más célebre de la literatura hispanoamericana." },
+            { title: "Romancero Gitano", author: "Federico García Lorca", genre: "poetry", genreName: "Poesía • Libby", desc: "Lirismo, folclor y fuerza dramática en versos inolvidables." },
+            { title: "Hamlet", author: "William Shakespeare", genre: "poetry", genreName: "Teatro • Libby", desc: "La clásica tragedia sobre la duda, la justicia y la existencia humana." },
+            { title: "Romeo y Julieta", author: "William Shakespeare", genre: "poetry", genreName: "Teatro • Libby", desc: "El drama romántico inmortal de la literatura universal." },
+            { title: "Los Versos del Capitán", author: "Pablo Neruda", genre: "poetry", genreName: "Poesía • Libby", desc: "Poemas apasionados escritos durante un periplo romántico por Italia." },
+            { title: "Antología Poética", author: "Mario Benedetti", genre: "poetry", genreName: "Poesía • Libby", desc: "Versos sobre el amor cotidiano, la esperanza y la empatía social." },
+            { title: "Rimas y Leyendas", author: "Gustavo Adolfo Bécquer", genre: "poetry", genreName: "Poesía • Libby", desc: "El romanticismo poético en su expresión más pura y sugerente." },
+            { title: "Bodas de Sangre", author: "Federico García Lorca", genre: "poetry", genreName: "Teatro • Libby", desc: "Tragedia teatral cargada de simbolismo, pasión y destino." },
+            { title: "Hojas de Hierba", author: "Walt Whitman", genre: "poetry", genreName: "Poesía • Libby", desc: "Canto poético a la libertad, la naturaleza y el espíritu individual." },
+
+            // CATEGORY 10: Divulgación Científica
+            { title: "Cosmos", author: "Carl Sagan", genre: "science", genreName: "Divulgación Científica • Libby", desc: "Un viaje asombroso por el universo, la astronomía y nuestro lugar en el cosmos." },
+            { title: "Breve Historia del Tiempo", author: "Stephen Hawking", genre: "science", genreName: "Divulgación Científica • Libby", desc: "Agujeros negros, el Big Bang y la física teórica explicada con lucidez." },
+            { title: "El Gen Egoísta", author: "Richard Dawkins", genre: "science", genreName: "Divulgación Científica • Libby", desc: "Biología evolutiva y la perspectiva genética de la vida." },
+            { title: "Astrofísica para Personas con Prisa", author: "Neil deGrasse Tyson", genre: "science", genreName: "Divulgación Científica • Libby", desc: "Conceptos cósmicos fundamentales condensados de forma clara y amena." },
+            { title: "Incógnito: Las vidas secretas del cerebro", author: "David Eagleman", genre: "science", genreName: "Divulgación Científica • Libby", desc: "Un fascinante recorrido por los procesos subconscientes que guían nuestra mente." },
+            { title: "¿Qué pasaría si...?", author: "Randall Munroe", genre: "science", genreName: "Divulgación Científica • Libby", desc: "Respuestas científicas serias a preguntas hipotéticas absurdas e interesantes." },
+            { title: "La Partícula Divina", author: "Leon Lederman", genre: "science", genreName: "Divulgación Científica • Libby", desc: "La búsqueda del bosón de Higgs y las fronteras de la física de partículas." },
+            { title: "El Mundo y sus Demonios", author: "Carl Sagan", genre: "science", genreName: "Divulgación Científica • Libby", desc: "La ciencia como una vela en la oscuridad para combatir la pseudociencia." },
+            { title: "La Guía del Viajero en el Tiempo", author: "Ian Mortimer", genre: "science", genreName: "Divulgación Científica • Libby", desc: "Cómo funcionaba la vida cotidiana en épocas históricas desde una óptica técnica." }
+        ];
+
+        let currentFilteredBooks = [...booksDatabase];
+        let currentBookIndex = 0;
+
+        function nextBook() {
+            if (currentFilteredBooks.length === 0) return;
+            currentBookIndex = (currentBookIndex + 1) % currentFilteredBooks.length;
+            updateBookCard(currentFilteredBooks[currentBookIndex]);
+            playPageFlipSound();
+        }
+
+        function filterGenre(genreKey) {
+            // Update active state on category filter buttons
+            const buttons = document.querySelectorAll('.genre-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-tec-blue', 'text-white', 'border-tec-lightBlue');
+                btn.classList.add('bg-slate-800', 'text-slate-300', 'border-slate-700');
+            });
+            event.currentTarget.classList.remove('bg-slate-800', 'text-slate-300', 'border-slate-700');
+            event.currentTarget.classList.add('bg-tec-blue', 'text-white', 'border-tec-lightBlue');
+
+            if (genreKey === 'all') {
+                currentFilteredBooks = [...booksDatabase];
+            } else {
+                currentFilteredBooks = booksDatabase.filter(b => b.genre === genreKey);
+            }
+
+            currentBookIndex = 0;
+            if (currentFilteredBooks.length > 0) {
+                updateBookCard(currentFilteredBooks[0]);
+            }
+            
+            document.getElementById('bookCountBadge').textContent = `${currentFilteredBooks.length} Títulos Filtrados`;
+            playPageFlipSound();
+        }
+
+        function updateBookCard(book) {
+            document.getElementById('bookTitle').textContent = book.title;
+            document.getElementById('bookAuthor').textContent = book.author;
+            document.getElementById('bookDesc').textContent = book.desc;
+            document.getElementById('bookGenreTag').textContent = book.genreName;
+            document.getElementById('currentBookIndexText').textContent = `${currentBookIndex + 1} / ${currentFilteredBooks.length}`;
+        }
+
+        // Mascot interaction sound & quote
+        function interactTeus() {
+            quoteIndex = (quoteIndex + 1) % quotes.length;
+            document.getElementById('teusQuoteText').textContent = quotes[quoteIndex];
+            playPageFlipSound();
+            confetti({
+                particleCount: 30,
+                spread: 60,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function playPageFlipSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                
+                const bufferSize = ctx.sampleRate * 0.1;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const output = buffer.getChannelData(0);
+                
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+                }
+
+                const whiteNoise = ctx.createBufferSource();
+                whiteNoise.buffer = buffer;
+
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(800, ctx.currentTime);
+                filter.Q.setValueAtTime(3, ctx.currentTime);
+
+                whiteNoise.connect(filter);
+                filter.connect(ctx.destination);
+
+                whiteNoise.start();
+            } catch (e) {
+                console.log('Audio error');
+            }
+        }
+
+        // Lofi Synth Ambient Sound
+        let audioCtx = null;
+        let isPlayingAudio = false;
+
+        function toggleAudio() {
+            const audioBtn = document.getElementById('audioBtn');
+            const audioText = document.getElementById('audioText');
+            const audioIcon = document.getElementById('audioIcon');
+
+            if (!isPlayingAudio) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const freqs = [196.00, 246.94, 293.66, 392.00];
+                    freqs.forEach(f => {
+                        let osc = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+                        gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start();
+                    });
+
+                    isPlayingAudio = true;
+                    audioText.textContent = "Ambiente Activo 🎵";
+                    audioIcon.className = "fa-solid fa-volume-high text-amber-400";
+                    audioBtn.classList.add("border-amber-400");
+                } catch(e) {
+                    console.log(e);
+                }
+            } else {
+                if (audioCtx) {
+                    audioCtx.close();
+                }
+                isPlayingAudio = false;
+                audioText.textContent = "Lofi Ambient";
+                audioIcon.className = "fa-solid fa-music text-tec-lightBlue";
+                audioBtn.classList.remove("border-amber-400");
+            }
+        }
+
+        // Modal controls
+        function openBookRecommendationModal() {
+            generateRandomBook();
+            document.getElementById('recModal').classList.remove('hidden');
+            document.getElementById('recModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('recModal').classList.add('hidden');
+            document.getElementById('recModal').classList.remove('flex');
+        }
+
+        function generateRandomBook() {
+            const randomBook = booksDatabase[Math.floor(Math.random() * booksDatabase.length)];
+            document.getElementById('modalTitle').textContent = randomBook.title;
+            document.getElementById('modalAuthor').textContent = randomBook.author;
+            document.getElementById('modalDesc').textContent = randomBook.desc;
+            playPageFlipSound();
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.7 }
+            });
+        }
+
+        // Poster Exporting
+        function exportPoster() {
+            const flyer = document.getElementById('flyerPoster');
+            triggerConfetti();
+
+            html2canvas(flyer, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#020617'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Dia_del_Lector_PrepaTec_Navojoa.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => {
+                alert('Descarga de poster iniciada.');
+            });
+        }
+    </script>
+</body>
+</html>
